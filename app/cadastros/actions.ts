@@ -10,7 +10,8 @@ function field(data: FormData, key: string, max = 160) {
   return value.trim();
 }
 export async function login(data: FormData) {
-  const email = field(data, "email", 254), password = field(data, "password", 256);
+  const email = field(data, "email", 254), password = data.get("password");
+  if (typeof password !== "string" || password.length === 0 || password.length > 256) redirect("/cadastros/login?erro=credenciais");
   const client = await authClient();
   const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) redirect("/cadastros/login?erro=credenciais");
