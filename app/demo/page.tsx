@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardList, FileText, Plus, Snowflake, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,9 +10,10 @@ type Photo = { id: string; src: string; caption: string; phase: string };
 type Draft = { objective: string; date: string; technician: string; equipment: string; checks: boolean[]; notes: string; photos: Photo[]; signer: string; signature: string; status: string };
 type Report = { draft: Draft; emittedAt: string; version: number };
 const KEY = "climaos-demo-v1";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const checklist = ["Inspeção visual do equipamento", "Limpeza dos filtros", "Verificação de drenagem", "Teste de funcionamento"];
 const blank = (): Draft => ({ objective: "Manutenção preventiva", date: "", technician: "Ana · Técnica demonstração", equipment: "EQ-001 · Split 12.000 BTU · Recepção", checks: checklist.map(() => false), notes: "", photos: [], signer: "", signature: "", status: "Rascunho" });
-const example = (): Draft => ({ ...blank(), date: "2026-11-12", checks: [true, true, true, true], notes: "Filtros limpos e funcionamento verificado. Equipamento operando normalmente.", photos: [{ id: "before", src: "/demo-antes.svg", caption: "Ilustração do equipamento antes da limpeza", phase: "Antes" }, { id: "after", src: "/demo-depois.svg", caption: "Ilustração do equipamento após a limpeza", phase: "Depois" }], signer: "Responsável demonstrativo", status: "Em execução" });
+const example = (): Draft => ({ ...blank(), date: "2026-11-12", checks: [true, true, true, true], notes: "Filtros limpos e funcionamento verificado. Equipamento operando normalmente.", photos: [{ id: "before", src: `${basePath}/demo-antes.svg`, caption: "Ilustração do equipamento antes da limpeza", phase: "Antes" }, { id: "after", src: `${basePath}/demo-depois.svg`, caption: "Ilustração do equipamento após a limpeza", phase: "Depois" }], signer: "Responsável demonstrativo", status: "Em execução" });
 const customer = "Cliente Exemplo Ltda.";
 const site = "Unidade Centro · Rua Exemplo, 100 · São Paulo/SP";
 
@@ -119,8 +121,8 @@ export default function Home() {
       </div>
     </header>
     {view !== "login" && <nav aria-label="Navegação principal" className="no-print mx-auto flex max-w-6xl flex-wrap gap-2 px-5 py-4">
-      <a href="/" className="self-center text-sm underline">Site institucional</a>
-      <Button variant="outline" onClick={() => { draftGeneration.current += 1; setDraft(example()); setExists(true); setReport(null); setStorageBlocked(false); setError(""); go("execute"); }}>Restaurar demonstração</Button>
+      <Link href="/" className="self-center text-sm underline">Site institucional</Link>
+      <Button variant="outline" onClick={() => { if (!window.confirm("Restaurar o exemplo e substituir o rascunho e relatório atuais?")) return; draftGeneration.current += 1; setDraft(example()); setExists(true); setReport(null); setStorageBlocked(false); setError(""); setStorageError(""); setView("execute"); window.scrollTo({ top: 0 }); }}>Restaurar demonstração</Button>
       <Button variant="outline" onClick={() => go("customers")}><Users size={17} />Clientes</Button>
       <Button variant="outline" onClick={() => go("orders")}><ClipboardList size={17} />Ordens de serviço</Button>
       {report && <Button variant="outline" onClick={() => go("report")}><FileText size={17} />Último relatório</Button>}
@@ -186,7 +188,7 @@ export default function Home() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {data.signature ? <img className="max-w-full w-80" src={data.signature} alt={"Assinatura demonstrativa de " + data.signer} /> : <p>________________________________<br />Espaço para assinatura</p>}<p className="muted">Demonstração sem validade de emissão. Assinatura capturada como evidência visual.</p></div>}
         </article>
-        {view === "review" ? <div className="panel space-y-5 no-print"><h2>Assinatura do responsável</h2><label className="block">Nome completo (fictício)<input maxLength={100} value={draft.signer} onChange={event => patch({ signer: event.target.value })} /></label><Signature value={draft.signature} onChange={signature => patch({ signature })} /><p className="muted">Ao salvar, uma cópia do conteúdo revisado fica disponível neste navegador. Uma nova versão substitui a última versão consultável.</p><div className="flex flex-wrap gap-3"><Button variant="outline" onClick={() => go("execute")}><ArrowLeft size={16} />Editar</Button><Button disabled={!draft.objective.trim()} onClick={saveReport}><CheckCircle2 size={16} />Salvar relatório demonstrativo</Button></div></div> : <div className="no-print space-y-4"><p className="muted">Use a impressão do navegador para visualizar ou salvar como PDF. Se o armazenamento estiver indisponível, este relatório dura apenas nesta sessão.</p><Button onClick={() => window.print()}>Imprimir / Salvar como PDF</Button></div>}
+        {view === "review" ? <div className="panel space-y-5 no-print"><h2>Assinatura do responsável</h2><label className="block">Nome completo (fictício)<input maxLength={100} value={draft.signer} onChange={event => patch({ signer: event.target.value })} /></label><Signature value={draft.signature} onChange={signature => patch({ signature })} /><p className="muted">Ao salvar, uma cópia do conteúdo revisado fica disponível nesta sessão e, quando possível, neste navegador. Uma nova versão substitui a última versão consultável.</p><div className="flex flex-wrap gap-3"><Button variant="outline" onClick={() => go("execute")}><ArrowLeft size={16} />Editar</Button><Button disabled={!draft.objective.trim()} onClick={saveReport}><CheckCircle2 size={16} />Salvar relatório demonstrativo</Button></div></div> : <div className="no-print space-y-4"><p className="muted">Use a impressão do navegador para visualizar ou salvar como PDF. Se o armazenamento estiver indisponível, este relatório dura apenas nesta sessão.</p><Button onClick={() => window.print()}>Imprimir / Salvar como PDF</Button></div>}
       </section>}
       <footer className="no-print border-t border-slate-200 pt-5 text-xs text-slate-600">S0 · Sem autenticação real ou envio ao servidor. Rascunhos e relatório disponíveis apenas neste navegador.</footer>
     </main>
