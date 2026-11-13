@@ -1,0 +1,22 @@
+@import "tailwindcss";
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #172b3a; background: #f4f7f8; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+input:not([type=checkbox]):not([type=file]), textarea, select { display: block; width: 100%; border: 1px solid #b9c6ce; background: white; border-radius: 10px; padding: 12px; margin-top: 6px; font: inherit; }
+input[type=checkbox] { width: 22px; height: 22px; accent-color: #115e59; }
+label { font-size: 14px; font-weight: 600; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.3rem); font-weight: 700; letter-spacing: -.04em; }
+h2 { font-size: 1.15rem; font-weight: 700; }
+p { line-height: 1.6; }
+.panel { background: white; border: 1px solid #dce4e8; border-radius: 12px; padding: 24px; }
+.muted { color: #536674; font-size: 14px; }
+.grid-fields { display: grid; gap: 20px; }
+@media (min-width: 700px) { .grid-fields { grid-template-columns: 1fr 1fr; } }
+@media print {
+  @page { size: A4; margin: 15mm; }
+  .no-print { display: none !important; }
+  body, main { background: white; margin: 0 !important; padding: 0 !important; }
+  .panel { border: 0; padding: 0; }
+  figure, .signature { break-inside: avoid; }
+  img { max-height: 210mm; }
+}
