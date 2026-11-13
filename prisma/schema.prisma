@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+model Organization {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  memberships Membership[]
+  customers Customer[]
+  equipment Equipment[]
+}
+model Membership {
+  userId String @id @db.Uuid
+  organizationId String @db.Uuid
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  @@index([organizationId])
+}
+model Customer {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  name String
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  equipment Equipment[]
+  @@unique([id, organizationId])
+  @@index([organizationId, name])
+}
+model Equipment {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  customerId String @db.Uuid
+  description String
+  createdAt DateTime @default(now())
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  customer Customer @relation(fields: [customerId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  @@index([organizationId, customerId])
+}
