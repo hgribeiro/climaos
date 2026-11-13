@@ -49,6 +49,8 @@ export default function Home() {
   const [storageBlocked, setStorageBlocked] = useState(false);
   const [saved, setSaved] = useState("");
   const [error, setError] = useState("");
+  const [storageError, setStorageError] = useState("");
+  const draftGeneration = useRef(0);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [query, setQuery] = useState("");
   const [replace, setReplace] = useState(false);
@@ -74,9 +76,10 @@ export default function Home() {
     try {
       localStorage.setItem(KEY, JSON.stringify({ draft, exists, report }));
       setSaved("Rascunho salvo neste navegador");
+      setStorageError("");
     } catch {
       setSaved("");
-      setError("Não foi possível salvar neste navegador. Não feche a página: remova fotos para reduzir o tamanho ou permita o armazenamento local.");
+      setStorageError("Não foi possível salvar neste navegador. Não feche a página: remova fotos para reduzir o tamanho ou permita o armazenamento local.");
     }
   }, [draft, exists, report, ready, storageBlocked]);
 
@@ -86,12 +89,13 @@ export default function Home() {
   async function addPhoto(file?: File) {
     if (!file) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { setError("Escolha uma imagem JPEG, PNG ou WebP."); return; }
-    if (file.size > 500 * 1024 || draft.photos.length >= 6) { setError("Limite da demonstração: seis fotos de até 500 KB cada."); return; }
+    if (file.size > 500 * 1024 || draft.photos.length >= 6 || draft.photos.reduce((total, photo) => total + photo.src.length, 0) + Math.ceil(file.size / 3) * 4 + 64 > 800 * 1024) { setError("Limite local: até seis fotos, 500 KB por foto e aproximadamente 600 KB no conjunto. Reduza as imagens ou remova uma foto."); return; }
+    const generation = draftGeneration.current;
     setPhotoBusy(true); setError("");
     try {
       const src = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); });
       await new Promise<void>((resolve, reject) => { const img = new Image(); img.onload = () => resolve(); img.onerror = reject; img.src = src; });
-      setDraft(previous => ({ ...previous, photos: [...previous.photos, { id: crypto.randomUUID(), src, caption: file.name, phase: "Antes" }] }));
+      if (draftGeneration.current === generation) setDraft(previous => ({ ...previous, photos: [...previous.photos, { id: crypto.randomUUID(), src, caption: file.name, phase: "Antes" }] }));
     } catch { setError("Não foi possível ler esta imagem. Tente outro arquivo."); }
     finally { setPhotoBusy(false); }
   }
@@ -124,6 +128,7 @@ export default function Home() {
     </nav>}
     <main className="mx-auto max-w-5xl space-y-6 px-5 py-8">
       <div className="no-print"><p className="mb-2 text-xs font-semibold uppercase tracking-widest text-teal-800">Artcool · Ambiente de demonstração</p><h1>{title[view]}</h1></div>
+      {storageError && <p role="alert" className="no-print rounded-xl border border-red-300 bg-red-50 p-4 text-red-900">{storageError}</p>}
       {error && <p role="alert" className="no-print rounded-xl border border-red-300 bg-red-50 p-4 text-red-900">{error}</p>}
 
       {view === "login" && <section className="panel max-w-xl space-y-5">
@@ -147,7 +152,7 @@ export default function Home() {
         {exists ? <article className="panel space-y-3"><div className="flex flex-wrap justify-between gap-2"><h2>OS DEMO-001 · {customer}</h2><span className="rounded-full bg-teal-50 px-3 py-1 text-sm text-teal-900">{draft.status}</span></div><p>{draft.objective} · {draft.date}</p><p className="muted">{draft.technician}</p><Button onClick={() => go("execute")}>Retomar atendimento</Button></article> : <div className="panel"><p>Nenhuma OS criada. Comece pelo cliente fictício.</p></div>}
       </section>}
 
-      {view === "create" && <form className="panel space-y-5" onSubmit={event => { event.preventDefault(); if (exists && !replace) return; setDraft({ ...newOrder, status: "Em execução" }); setExists(true); go("execute"); }}>
+      {view === "create" && <form className="panel space-y-5" onSubmit={event => { event.preventDefault(); if (exists && !replace) return; draftGeneration.current += 1; setDraft({ ...newOrder, status: "Em execução" }); setExists(true); go("execute"); }}>
         <p><strong>Cliente:</strong> {customer}<br /><span className="muted">{site}</span></p>
         <div className="grid-fields">
           <label>Equipamento<select required value={newOrder.equipment} onChange={event => setNewOrder({ ...newOrder, equipment: event.target.value })}><option>EQ-001 · Split 12.000 BTU · Recepção</option></select></label>
@@ -162,7 +167,7 @@ export default function Home() {
       {view === "execute" && <section className="space-y-5">
         <div className="panel space-y-2"><h2>OS DEMO-001 · {customer}</h2><p>{draft.equipment}</p><p className="muted">{draft.technician} · {draft.date}</p><p role="status" className="text-sm text-teal-800">{saved || "Alterações ainda não confirmadas no armazenamento"}</p></div>
         <div className="panel space-y-4"><h2>Checklist</h2>{checklist.map((item, index) => <label key={item} className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={draft.checks[index]} onChange={event => patch({ checks: draft.checks.map((value, position) => position === index ? event.target.checked : value) })} />{item}</label>)}</div>
-        <div className="panel space-y-4"><h2>Fotografias · EQ-001</h2><p className="muted">Até 6 imagens de 500 KB cada, guardadas neste navegador.</p><label className="block">Adicionar fotografia<input className="mt-2 block max-w-full text-sm" type="file" accept="image/jpeg,image/png,image/webp" disabled={photoBusy || draft.photos.length >= 6} onChange={event => { void addPhoto(event.target.files?.[0]); event.target.value = ""; }} /></label>
+        <div className="panel space-y-4"><h2>Fotografias · EQ-001</h2><p className="muted">Até 6 imagens, 500 KB por foto e aproximadamente 600 KB no conjunto. Guardadas neste navegador.</p><label className="block">Adicionar fotografia<input className="mt-2 block max-w-full text-sm" type="file" accept="image/jpeg,image/png,image/webp" disabled={photoBusy || draft.photos.length >= 6} onChange={event => { void addPhoto(event.target.files?.[0]); event.target.value = ""; }} /></label>
           {photoBusy && <p role="status">Processando imagem…</p>}
           <div className="grid gap-5 sm:grid-cols-2">{draft.photos.map((photo, index) => <div key={photo.id} className="space-y-3 rounded-xl border border-slate-200 p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -15,8 +15,11 @@ Use apenas dados fictícios. Execute com Node.js 22: `npm install`, `npm run dev
 
 ## Limitações e próximos passos
 
-Não há autenticação real, backend, autorização, upload remoto, PWA instalável ou PDF de servidor. Fotos e assinatura ficam somente neste navegador; limite de seis imagens de até 500 KB cada para o piloto visual. Não há sincronização entre aparelhos. Limpar dados do navegador remove rascunhos/relatório. Não usar dados reais.
+Não há autenticação real, backend, autorização, upload remoto, PWA instalável ou PDF de servidor. Fotos e assinatura ficam somente neste navegador; limite de seis imagens de até 500 KB cada e aproximadamente 600 KB no conjunto para o piloto visual. Não há sincronização entre aparelhos. Limpar dados do navegador remove rascunhos/relatório. Não usar dados reais.
 
 A demonstração cobre uma OS por vez, um cliente e um equipamento fictícios. Criar outra OS substitui o rascunho mediante confirmação explícita e preserva o último relatório. O último relatório salvo é um snapshot separado do rascunho. Cada nova emissão demonstrativa substitui a versão consultável; histórico completo entra em S3.
 
 A CI executa TypeScript e build. Não há lockfile inicial: gerar e versionar package-lock.json no primeiro ambiente com npm para builds reproduzíveis. Nenhuma execução de build/testes locais foi realizada pelo agente; o ambiente de trabalho só fornece o conector GitHub.
+
+11. Durante leitura de foto, crie outra OS: a imagem da OS anterior não deve ser anexada à nova.
+12. Provoque erro de persistência e navegue entre telas: o aviso deve permanecer até um salvamento bem-sucedido.
