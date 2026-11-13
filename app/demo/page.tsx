@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 
 type View = "login" | "customers" | "customer" | "orders" | "create" | "execute" | "review" | "report";
 type Photo = { id: string; src: string; caption: string; phase: string };
-type Draft = { objective: string; date: string; technician: string; equipment: string; checks: boolean[]; notes: string; photos: Photo[]; signer: string; signature: string; status: string };
+type Draft = { objective: string; date: string; technician: string; equipment: string; checks: boolean[]; notes: string; photos: Photo[]; signer: string; signature: string; status: string; context?: string };
 type Report = { draft: Draft; emittedAt: string; version: number };
 const KEY = "climaos-demo-v1";
-const checklist = ["Inspeção visual da evaporadora e dos filtros", "Higienização dos filtros", "Limpeza da bandeja e verificação do escoamento do dreno", "Teste de funcionamento após o serviço"];
+const checklist = ["Inspeção visual da evaporadora e dos filtros", "Higienização dos filtros", "Limpeza da bandeja e verificação do escoamento do dreno", "Teste de funcionamento após o serviço", "Inspeção visual da unidade externa", "Orientação ao responsável"];
 const blank = (): Draft => ({ objective: "Manutenção preventiva", date: "", technician: "Ana · Técnica demonstração", equipment: "EQ-001 · Split 12.000 BTU · Recepção", checks: checklist.map(() => false), notes: "", photos: [], signer: "", signature: "", status: "Rascunho" });
-const example = (): Draft => ({ ...blank(), date: "2026-11-12", checks: [true, true, true, true], notes: "Relato fictício: responsável informou gotejamento na unidade interna após algumas horas de uso. Na inspeção simulada, havia acúmulo de poeira nos filtros e escoamento lento no dreno. Foram simuladas a higienização dos filtros e da bandeja, a limpeza do dreno e a verificação de escoamento. No teste demonstrativo, o aparelho operou sem gotejamento aparente. Orientação: acompanhar o funcionamento e solicitar avaliação técnica caso o sintoma retorne.", photos: [{ id: "reference-equipment", src: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Air_Conditioner_1.jpg/960px-Air_Conditioner_1.jpg", caption: "Equipamento de referência · Open Grid Scheduler / Grid Engine, Wikimedia Commons, CC0", phase: "Foto ilustrativa" }, { id: "reference-service", src: "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/5233Aircon_cleaning_in_the_Philippines_02.jpg/960px-5233Aircon_cleaning_in_the_Philippines_02.jpg", caption: "Limpeza de ar-condicionado · Judgefloro, Wikimedia Commons, CC0", phase: "Foto ilustrativa" }], signer: "Responsável demonstrativo", status: "Em execução" });
-const customer = "Cliente Exemplo Ltda.";
-const site = "Unidade Centro · Rua Exemplo, 100 · São Paulo/SP";
+const example = (): Draft => ({ ...blank(), date: "2026-11-12", checks: [true, true, true, true, true, true], context: "Solicitação fictícia: recepção com gotejamento após algumas horas de uso. Split de parede de 12.000 BTU/h; unidade externa na área técnica. Histórico fictício: limpeza dos filtros há quatro meses. Visita combinada fora do horário de pico.", notes: "Relato fictício: responsável informou gotejamento na unidade interna após algumas horas de uso. Na inspeção simulada, havia acúmulo de poeira nos filtros e escoamento lento no dreno. Foram simuladas a higienização dos filtros e da bandeja, a limpeza do dreno e a verificação de escoamento. No teste demonstrativo, o aparelho operou sem gotejamento aparente. Orientação: acompanhar o funcionamento e solicitar avaliação técnica caso o sintoma retorne.", photos: [{ id: "reference-equipment", src: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Air_Conditioner_1.jpg/960px-Air_Conditioner_1.jpg", caption: "Equipamento de referência · Open Grid Scheduler / Grid Engine, Wikimedia Commons, CC0", phase: "Foto ilustrativa" }, { id: "reference-service", src: "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/5233Aircon_cleaning_in_the_Philippines_02.jpg/960px-5233Aircon_cleaning_in_the_Philippines_02.jpg", caption: "Limpeza de ar-condicionado · Judgefloro, Wikimedia Commons, CC0", phase: "Foto ilustrativa" }], signer: "Responsável demonstrativo", status: "Em execução" });
+const customer = "Café Horizonte · cliente fictício";
+const site = "Unidade Centro · endereço fictício · São Paulo/SP";
 
 function Signature({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -144,7 +144,7 @@ export default function Home() {
 
       {view === "customer" && <section className="space-y-5">
         <div className="panel space-y-2"><h2>Contato e local</h2><p>Marina Exemplo · contato@example.com</p><p>{site}</p><p className="muted">Identificação fiscal omitida no protótipo.</p></div>
-        <div className="panel space-y-3"><h2>Equipamentos</h2><p>EQ-001 · Split 12.000 BTU · Recepção</p><p className="muted">Modelo e número de série: demonstração.</p><Button onClick={startNew}><Plus size={18} />Nova OS para este cliente</Button></div>
+        <div className="panel space-y-3"><h2>Equipamentos</h2><p>EQ-001 · Split 12.000 BTU · Recepção</p><p className="muted">Modelo fictício SPL-12 · Série fictícia DEMO-001 · Unidade externa na área técnica.</p><Button onClick={startNew}><Plus size={18} />Nova OS para este cliente</Button></div>
       </section>}
 
       {view === "orders" && <section className="space-y-4">
@@ -165,8 +165,8 @@ export default function Home() {
       </form>}
 
       {view === "execute" && <section className="space-y-5">
-        <div className="panel space-y-2"><h2>OS DEMO-001 · {customer}</h2><p>{draft.equipment}</p><p className="muted">{draft.technician} · {draft.date}</p><p role="status" className="text-sm text-teal-800">{saved || "Alterações ainda não confirmadas no armazenamento"}</p></div>
-        <div className="panel space-y-4"><h2>Checklist</h2>{checklist.map((item, index) => <label key={item} className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={draft.checks[index]} onChange={event => patch({ checks: draft.checks.map((value, position) => position === index ? event.target.checked : value) })} />{item}</label>)}</div>
+        <div className="panel space-y-2"><h2>OS DEMO-001 · {customer}</h2><p>{draft.equipment}</p><p className="muted">{draft.technician} · {draft.date}</p>{draft.context && <p className="whitespace-pre-wrap">{draft.context}</p>}<p role="status" className="text-sm text-teal-800">{saved || "Alterações ainda não confirmadas no armazenamento"}</p></div>
+        <div className="panel space-y-4"><h2>Checklist</h2>{checklist.map((item, index) => <label key={item} className="flex min-h-11 items-center gap-3"><input type="checkbox" checked={!!draft.checks[index]} onChange={event => patch({ checks: checklist.map((_, position) => position === index ? event.target.checked : !!draft.checks[position]) })} />{item}</label>)}</div>
         <div className="panel space-y-4"><h2>Imagens ilustrativas · EQ-001</h2><p className="muted">Fotografias de referência: não mostram o equipamento ou o atendimento fictício. Disponíveis online via Wikimedia Commons.</p><div className="grid gap-5 sm:grid-cols-2">{draft.photos.map(photo => <figure key={photo.id}><img src={photo.src} alt={photo.caption} className="w-full rounded-lg" /><figcaption>{photo.phase} · {photo.caption}</figcaption></figure>)}</div></div>
         <div className="panel space-y-4"><label className="block">Objetivo<input maxLength={200} value={draft.objective} onChange={event => patch({ objective: event.target.value })} /></label><label className="block">Observações<textarea rows={5} maxLength={5000} value={draft.notes} onChange={event => patch({ notes: event.target.value })} placeholder="Descreva o que foi realizado e os pontos de atenção." /></label></div>
         <Button disabled={photoBusy || !draft.objective.trim()} onClick={() => go("review")}>Revisar atendimento <ArrowRight size={16} /></Button>
@@ -176,10 +176,10 @@ export default function Home() {
         <article className="panel space-y-6">
           <div><p className="text-xs font-semibold uppercase tracking-widest text-teal-800">Documento demonstrativo</p><h2>Relatório de atendimento · OS DEMO-001</h2>{view === "report" && report && <p className="muted">Versão {report.version} · Salvo em {new Date(report.emittedAt).toLocaleString("pt-BR")}</p>}</div>
           <div className="grid-fields"><div><h2>Cliente e local</h2><p>{customer}<br />{site}</p></div><div><h2>Atendimento</h2><p>{data.date} · {data.technician}<br />{data.equipment}</p></div></div>
-          <div><h2>Objetivo</h2><p className="whitespace-pre-wrap">{data.objective}</p></div>
+          {data.context && <div><h2>Contexto da solicitação</h2><p className="whitespace-pre-wrap">{data.context}</p></div>}<div><h2>Objetivo</h2><p className="whitespace-pre-wrap">{data.objective}</p></div>
           <div><h2>Checklist</h2><ul className="mt-2 space-y-2">{checklist.map((item, index) => <li key={item}>{data.checks[index] ? "✓ Realizado" : "○ Não marcado"} — {item}</li>)}</ul></div>
           <div><h2>Observações</h2><p className="whitespace-pre-wrap">{data.notes || "Sem observações registradas."}</p></div>
-          <div><h2>Imagens do atendimento</h2><p className="muted">As fotos de referência identificadas como ilustrativas não registram esta OS. Fontes: Wikimedia Commons, Open Grid Scheduler / Grid Engine e Judgefloro (CC0).</p>{data.photos.length === 0 && <p className="muted">Nenhuma foto anexada.</p>}<div className="mt-3 grid gap-5 sm:grid-cols-2">{data.photos.map(photo => <figure key={photo.id} className="space-y-2">
+          <div><h2>Imagens de referência</h2><p className="muted">As fotos de referência identificadas como ilustrativas não registram esta OS. Fontes: Wikimedia Commons, Open Grid Scheduler / Grid Engine e Judgefloro (CC0).</p>{data.photos.length === 0 && <p className="muted">Nenhuma foto anexada.</p>}<div className="mt-3 grid gap-5 sm:grid-cols-2">{data.photos.map(photo => <figure key={photo.id} className="space-y-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="max-h-80 w-full object-contain" src={photo.src} alt={photo.caption || "Evidência do equipamento"} /><figcaption className="text-sm">{photo.phase} · {photo.caption || "Sem legenda"}</figcaption>
           </figure>)}</div></div>
