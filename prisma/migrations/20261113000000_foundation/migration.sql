@@ -1,0 +1,12 @@
+CREATE TABLE "Organization" ("id" UUID NOT NULL, "name" TEXT NOT NULL, CONSTRAINT "Organization_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Membership" ("userId" UUID NOT NULL, "organizationId" UUID NOT NULL, CONSTRAINT "Membership_pkey" PRIMARY KEY ("userId"));
+CREATE TABLE "Customer" ("id" UUID NOT NULL, "organizationId" UUID NOT NULL, "name" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "Customer_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Equipment" ("id" UUID NOT NULL, "organizationId" UUID NOT NULL, "customerId" UUID NOT NULL, "description" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "Equipment_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "Membership_organizationId_idx" ON "Membership"("organizationId");
+CREATE UNIQUE INDEX "Customer_id_organizationId_key" ON "Customer"("id", "organizationId");
+CREATE INDEX "Customer_organizationId_name_idx" ON "Customer"("organizationId", "name");
+CREATE INDEX "Equipment_organizationId_customerId_idx" ON "Equipment"("organizationId", "customerId");
+ALTER TABLE "Membership" ADD CONSTRAINT "Membership_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Customer" ADD CONSTRAINT "Customer_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Equipment" ADD CONSTRAINT "Equipment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Equipment" ADD CONSTRAINT "Equipment_customerId_organizationId_fkey" FOREIGN KEY ("customerId","organizationId") REFERENCES "Customer"("id","organizationId") ON DELETE RESTRICT ON UPDATE CASCADE;

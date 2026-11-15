@@ -1,0 +1,11 @@
+# S1: cadastros em ambiente de teste
+
+A rota /cadastros é independente da demonstração S0, que continua usando apenas o navegador. Os campos são provisórios. Use somente dados fictícios e um projeto Supabase separado de qualquer ambiente com dados reais. Não use esta versão em produção.
+
+1. Crie um projeto Supabase de teste. Desabilite cadastro público no Auth. Configure as variáveis de .env.example em .env.local; DATABASE_URL pode usar o pooler de transações e DIRECT_URL precisa de conexão direta para migrações. Não publique credenciais.
+2. Instale as dependências, execute npx prisma migrate deploy e depois npm run dev. Acesse /cadastros. Teste também a migração de um banco com Membership anterior: vínculos existentes recebem TECHNICIAN por padrão.
+3. No Supabase Auth, convide ou crie usuários de teste. Por conexão administrativa ao banco, insira uma Organization e uma Membership com o UUID de cada usuário. IDs são UUIDs; gere o ID da organização fora do navegador. Um usuário pertence a uma única organização nesta etapa. Atribua ADMIN explicitamente a um usuário de teste; os demais podem permanecer TECHNICIAN. Não há cadastro público nem interface administrativa.
+4. Crie uma segunda organização com ADMIN e TECHNICIAN fictícios. Verifique que somente ADMIN acessa cadastros e executa suas ações, e que IDs adulterados de outra organização são negados. Teste também usuário sem vínculo, sem sessão, logout e expiração e renovação de sessão. Confirme que anon e authenticated não acessam diretamente as tabelas pelo PostgREST.
+5. Cadastre, atualize e consulte cliente, local e equipamento; recarregue e inicie nova sessão para verificar persistência. Os dados do S0 não migram para o S1.
+
+A autorização acontece no servidor com identidade verificada pelo Supabase, papel e vínculo consultados no banco; o ID da organização não vem de formulários. As chaves compostas impedem associar local ou equipamento a cliente de outra organização. ADMIN e TECHNICIAN existem, e as páginas e ações de cadastros exigem ADMIN. Gestão de usuários, seleção para OS, testes de migração, sessão, papéis e isolamento ainda precisam ser concluídos antes de uso operacional. A renovação de cookies precisa ser comprovada em runtime. Consulte também docs/S1-LOCAIS.md.
