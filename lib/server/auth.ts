@@ -13,11 +13,19 @@ export async function authClient() {
     },
   });
 }
-export async function requireOrganization() {
+async function requireMembership() {
   const supabase = await authClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) redirect("/cadastros/login");
   const membership = await db.membership.findUnique({ where: { userId: user.id }, include: { organization: true } });
   if (!membership) redirect("/cadastros/login?erro=sem-vinculo");
+  return membership;
+}
+export async function requireOrganization() {
+  return (await requireMembership()).organization;
+}
+export async function requireAdmin() {
+  const membership = await requireMembership();
+  if (membership.role !== "ADMIN") throw new Error("Acesso restrito a administradores.");
   return membership.organization;
 }

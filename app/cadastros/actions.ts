@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { authClient, requireOrganization } from "@/lib/server/auth";
+import { authClient, requireAdmin } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
 
 function field(data: FormData, key: string, max = 160) {
@@ -23,20 +23,28 @@ export async function logout() {
   redirect("/cadastros/login");
 }
 export async function createCustomer(data: FormData) {
-  const org = await requireOrganization();
+  const org = await requireAdmin();
   await db.customer.create({ data: { organizationId: org.id, name: field(data, "name") } });
   revalidatePath("/cadastros");
 }
 export async function updateCustomer(data: FormData) {
-  const org = await requireOrganization();
+  const org = await requireAdmin();
   await db.customer.updateMany({ where: { id: field(data, "id", 36), organizationId: org.id }, data: { name: field(data, "name") } });
   revalidatePath("/cadastros");
 }
 export async function createEquipment(data: FormData) {
-  const org = await requireOrganization();
+  const org = await requireAdmin();
   const customerId = field(data, "customerId", 36);
   const customer = await db.customer.findFirst({ where: { id: customerId, organizationId: org.id }, select: { id: true } });
   if (!customer) throw new Error("Cliente não encontrado.");
   await db.equipment.create({ data: { organizationId: org.id, customerId: customer.id, description: field(data, "description") } });
+  revalidatePath("/cadastros");
+}
+export async function createLocation(data: FormData) {
+  const org = await requireAdmin();
+  const customerId = field(data, "customerId", 36);
+  const customer = await db.customer.findFirst({ where: { id: customerId, organizationId: org.id }, select: { id: true } });
+  if (!customer) throw new Error("Cliente não encontrado.");
+  await db.location.create({ data: { organizationId: org.id, customerId: customer.id, name: field(data, "name") } });
   revalidatePath("/cadastros");
 }
