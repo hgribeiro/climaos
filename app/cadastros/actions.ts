@@ -29,7 +29,8 @@ export async function createCustomer(data: FormData) {
 }
 export async function updateCustomer(data: FormData) {
   const org = await requireAdmin();
-  await db.customer.updateMany({ where: { id: field(data, "id", 36), organizationId: org.id }, data: { name: field(data, "name") } });
+  const result = await db.customer.updateMany({ where: { id: field(data, "id", 36), organizationId: org.id }, data: { name: field(data, "name") } });
+  if (result.count !== 1) throw new Error("Cliente não encontrado.");
   revalidatePath("/cadastros");
 }
 export async function createEquipment(data: FormData) {
