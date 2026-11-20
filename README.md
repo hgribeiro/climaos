@@ -1,4 +1,27 @@
-# ClimaOS — demonstração comercial
+# ClimaOS
+
+## Área do técnico
+
+Em `/campo/`, o técnico pode abrir um pedido de cliente com a primeira ordem de serviço, registrar visitas de retorno no mesmo pedido e anexar fotos e observações à OS de cada visita. No piloto, cada técnico acessa os pedidos que criou.
+
+Para executar a área operacional localmente, use Node.js 22.13 ou superior, compile na raiz do domínio e inicie o servidor com SQLite. Defina `CLIMAOS_USERS` no ambiente do processo como um objeto JSON que associa cada usuário à respectiva senha. Exemplo para desenvolvimento local com credencial fictícia:
+
+```sh
+npm ci
+npm run build
+CLIMAOS_USERS='{"tecnico":"apenas-para-teste-local"}' HOST=127.0.0.1 npm run campo
+```
+
+Abra http://localhost:3000/campo/. O servidor lê `PORT` e `CLIMAOS_DB`. Por padrão, grava os dados em `server/climaos.sqlite`. Para uso em celular fora de localhost, disponibilize o servidor por HTTPS, configure `NODE_ENV=production` e `CLIMAOS_ORIGIN` com a origem pública exata (por exemplo, `https://campo.exemplo.com`) e mantenha o banco em um volume persistente. O GitHub Pages hospeda a demonstração estática. A área do técnico usa a API do processo Node na mesma origem.
+
+### Verificação em campo
+
+1. Entre com conexão, crie o pedido e abra a OS de diagnóstico. Aguarde a confirmação de acesso offline.
+2. Desative a conexão, registre uma foto e uma observação e aguarde “Salvo neste aparelho”. Feche a aba e reabra `/campo/` no mesmo navegador.
+3. Confira a evidência, reconecte com a área do técnico aberta e aguarde “Enviado”. Recarregue e confira que há apenas uma cópia.
+4. No mesmo pedido, abra uma OS de retorno e registre o reparo. Confira que cada visita apresenta suas próprias evidências.
+
+## Demonstração comercial
 
 Site institucional e demonstração de uma OS fictícia, sem login ou servidor. Use somente dados fictícios. Alterações e relatório ficam no navegador quando o armazenamento estiver disponível; a impressão do navegador permite salvar em PDF.
 
